@@ -14,6 +14,7 @@ class MyPhone extends StatefulWidget {
 class _MyPhoneState extends State<MyPhone> {
   TextEditingController countryController = TextEditingController();
   TextEditingController _phnController = TextEditingController();
+  bool buttonLoading = false;
 
   @override
   void initState() {
@@ -100,9 +101,16 @@ class _MyPhoneState extends State<MyPhone> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10))),
                     onPressed: () {
+                      setState(() {
+                        buttonLoading = true;
+                      });
                       _phoneVerifiction();
                     },
-                    child: const Text("Send OTP")),
+                    child: buttonLoading
+                        ? CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        : Text("Sent OTP")),
               )
             ],
           ),
@@ -115,20 +123,32 @@ class _MyPhoneState extends State<MyPhone> {
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: '${countryController.text + _phnController.text}',
       verificationCompleted: (PhoneAuthCredential credential) {
+        setState(() {
+          buttonLoading = false;
+        });
         snackBar(context, "Verification Code Sent");
       },
       verificationFailed: (FirebaseAuthException e) {
+        setState(() {
+          buttonLoading = false;
+        });
         print('---verificationFailed----${e.toString()}');
         snackBar(context, "Connection problem / Invalid phone number");
       },
       codeSent: (String verificationId, int? resendToken) {
+        setState(() {
+          buttonLoading = false;
+        });
         MyPhone.verify = verificationId;
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) {
+        snackBar(context, "Verification Code Sent");
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
           return MyOTP();
         }));
       },
       codeAutoRetrievalTimeout: (String verificationId) {
+        setState(() {
+          buttonLoading = false;
+        });
         snackBar(context, "Verification Timeout");
       },
     );

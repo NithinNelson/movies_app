@@ -4,6 +4,7 @@ import 'package:movies_app/screens/home_screen.dart';
 import 'package:movies_app/screens/login/phone.dart';
 import 'package:movies_app/utils/snackBar.dart';
 import 'package:pinput/pinput.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyOTP extends StatefulWidget {
   const MyOTP({Key? key}) : super(key: key);
@@ -105,27 +106,8 @@ class _MyOTPState extends State<MyOTP> {
                     style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10))),
-                    onPressed: () async {
-                      try {
-                        PhoneAuthCredential credential =
-                            PhoneAuthProvider.credential(
-                                verificationId: MyPhone.verify,
-                                smsCode: _pinEditingController.text);
-
-                        // Sign the user in (or link) with the credential
-                        await auth.signInWithCredential(credential);
-                        Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) {
-                          return HomeScreen();
-                        }), (route) => false);
-                      } catch (e) {
-                        snackBar(context, "Enter Correct OTP");
-                        print('--------e.toString()----------${e.toString()}');
-                      }
-                      print(
-                          '---------verificationId----------${MyPhone.verify}');
-                      print('------o-----${_pinEditingController.text}');
-                      _pinEditingController.clear();
+                    onPressed: () {
+                      _otpVerification();
                     },
                     child: Text("Verify OTP")),
               ),
@@ -149,5 +131,26 @@ class _MyOTPState extends State<MyOTP> {
         ),
       ),
     );
+  }
+
+  _otpVerification() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      PhoneAuthCredential credential =
+      PhoneAuthProvider.credential(
+          verificationId: MyPhone.verify,
+          smsCode: _pinEditingController.text);
+
+      // Sign the user in (or link) with the credential
+      await auth.signInWithCredential(credential);
+      await prefs.setBool('login', true);
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) {
+            return HomeScreen();
+          }), (route) => false);
+    } catch (e) {
+      snackBar(context, "Enter Correct OTP");
+    }
+    _pinEditingController.clear();
   }
 }
