@@ -1,8 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:movies_app/screens/home_screen.dart';
-import 'package:movies_app/screens/login/phone.dart';
+import 'package:movies_app/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   _navigationWidget() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final bool? user = prefs.getBool('login');
+    final String? user = prefs.getString('login');
 
     Timer(Duration(seconds: 1), () {
       user != null
@@ -31,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
             }), (route) => false)
           : Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) {
-              return MyPhone();
+              return Login();
             }), (route) => false);
     });
   }
