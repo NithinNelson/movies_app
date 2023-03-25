@@ -59,8 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 "Hi, $lohIn",
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: Colors.grey,
+                style: TextStyle(
+                    color: Colors.grey[700],
                     fontWeight: FontWeight.bold,
                     fontSize: 20),
                 maxLines: 1,
