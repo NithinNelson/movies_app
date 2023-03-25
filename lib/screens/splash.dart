@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('login');
 
-    Timer(Duration(seconds: 1), () {
+    Timer(const Duration(seconds: 1), () {
       user != null
           ? Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) {

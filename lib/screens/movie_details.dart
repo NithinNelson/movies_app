@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:movies_app/services/rapi_data.dart';
+import 'package:movies_app/services/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MovieDetails extends StatefulWidget {
@@ -42,8 +43,6 @@ class _MovieDetailsState extends State<MovieDetails> {
       setState(() {
         movieDetails = json.decode(moviedata);
       });
-      print('---------------------$movieDetails');
-      print('---------------------${movieDetails['cast']}');
     }
   }
 
@@ -91,7 +90,7 @@ class _MovieDetailsState extends State<MovieDetails> {
                           width: 200,
                           height: 300,
                           child: Image.network(movieDetails['image'],
-                              fit: BoxFit.cover, loadingBuilder: _imageLoading),
+                              fit: BoxFit.cover, loadingBuilder: imageLoading),
                         ),
                       ),
                     ),
@@ -220,7 +219,7 @@ class _MovieDetailsState extends State<MovieDetails> {
                                             ? Image.network(
                                                 "https://image.tmdb.org/t/p/original${movieDetails['cast'][index]['profile_path']}",
                                                 fit: BoxFit.cover,
-                                                loadingBuilder: _imageLoading)
+                                                loadingBuilder: imageLoading)
                                             : Center(
                                               child: Text(
                                                 "Empty",
@@ -272,21 +271,6 @@ class _MovieDetailsState extends State<MovieDetails> {
                 ),
               ),
             ),
-    );
-  }
-
-  Widget _imageLoading(
-      BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-    if (loadingProgress == null) {
-      return child;
-    }
-    return Center(
-      child: CircularProgressIndicator(
-        value: loadingProgress.expectedTotalBytes != null
-            ? loadingProgress.cumulativeBytesLoaded /
-                loadingProgress.expectedTotalBytes!
-            : null,
-      ),
     );
   }
 }

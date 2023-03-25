@@ -6,6 +6,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:movies_app/screens/login.dart';
 import 'package:movies_app/screens/movie_details.dart';
 import 'package:movies_app/services/rapi_data.dart';
+import 'package:movies_app/services/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,6 +17,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  TextEditingController controller = TextEditingController();
+  var newResult = [];
   var movieList;
   String? lohIn;
   bool loader = false;
@@ -35,6 +38,23 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       loader = false;
     });
+  }
+
+  Future<void> refresh() async {
+    _getData();
+  }
+
+  _getMovieList() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? moviedata = prefs.getString('movieData');
+    final String? login = prefs.getString('login');
+    if (moviedata != null) {
+      setState(() {
+        movieList = json.decode(moviedata);
+        lohIn = login;
+        newResult = movieList;
+      });
+    }
   }
 
   @override
@@ -79,7 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   width: 200,
                   height: 50,
-                  decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.circular(10)),
                   child: Center(
                     child: Text(
                       "Logout",
@@ -111,6 +133,68 @@ class _HomeScreenState extends State<HomeScreen> {
           : SingleChildScrollView(
               child: Column(
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: SizedBox(
+                      width: 290,
+                      height: 40,
+                      child: TextField(
+                        controller: controller,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1,
+                                color: Colors.white,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1,
+                                color: Colors.white,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            hintText: 'Search movie',
+                            contentPadding: EdgeInsets.fromLTRB(20, 10, 10, 10),
+                            hintStyle:
+                                TextStyle(color: Colors.white, fontSize: 15),
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              color: Colors.white,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: controller.text.isNotEmpty
+                                  ? Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                    )
+                                  : Container(),
+                              onPressed: () {
+                                setState(() {
+                                  controller.clear();
+                                  //newResult.clear();
+                                  newResult = movieList;
+                                });
+                                // onSearchTextChanged('');
+                              },
+                            ),
+                            counterText: ""),
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                        maxLength: 15,
+                        onChanged: (value) {
+                          setState(() {
+                            newResult = movieList
+                                .where((element) => element["title"]
+                                    .toString()
+                                    .toUpperCase()
+                                    .contains(value.toUpperCase()))
+                                .toList();
+                          });
+                        },
+                      ),
+                    ),
+                  ),
                   Container(
                     height: MediaQuery.of(context).size.height,
                     width: MediaQuery.of(context).size.width,
@@ -121,8 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         onRefresh: refresh,
                         child: ListView.builder(
                           physics: BouncingScrollPhysics(),
-                          itemCount: movieList.length,
-                          padding: const EdgeInsets.only(bottom: 80, top: 10),
+                          itemCount: newResult.length,
+                          padding: const EdgeInsets.only(bottom: 150, top: 10),
                           itemBuilder: (context, index) {
                             return Column(
                               children: [
@@ -130,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onTap: () => Navigator.of(context).push(
                                       MaterialPageRoute(builder: (context) {
                                     return MovieDetails(
-                                        id: movieList[index]['id']);
+                                        id: newResult[index]['id']);
                                   })),
                                   child: SizedBox(
                                     width: MediaQuery.of(context).size.width,
@@ -159,10 +243,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                             child: SizedBox(
                                               width: 100,
                                               child: Image.network(
-                                                  movieList[index]['image'],
+                                                  newResult[index]['image'],
                                                   fit: BoxFit.cover,
                                                   loadingBuilder:
-                                                      _imageLoading),
+                                                      imageLoading),
                                             ),
                                           ),
                                           Padding(
@@ -174,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 Container(
                                                   width: 200.w,
                                                   child: Text(
-                                                    movieList[index]['title'],
+                                                    newResult[index]['title'],
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     style: const TextStyle(
@@ -187,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                                 SizedBox(height: 20),
                                                 Text(
-                                                  "Release Date : ${movieList[index]['releaseDate']}",
+                                                  "Release Date : ${newResult[index]['releaseDate']}",
                                                   overflow:
                                                       TextOverflow.ellipsis,
                                                   style: const TextStyle(
@@ -210,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       ),
                                                       SizedBox(width: 10),
                                                       Text(
-                                                        "${movieList[index]['vote']}/10",
+                                                        "${newResult[index]['vote']}/10",
                                                         overflow: TextOverflow
                                                             .ellipsis,
                                                         style: const TextStyle(
@@ -242,39 +326,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-    );
-  }
-
-  Future<void> refresh() async {
-    _getData();
-  }
-
-  _getMovieList() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? moviedata = prefs.getString('movieData');
-    final String? login = prefs.getString('login');
-    if (moviedata != null) {
-      setState(() {
-        movieList = json.decode(moviedata);
-        lohIn = login;
-      });
-      print('----------1-----------$movieList');
-      print('----------1-----------$lohIn');
-    }
-  }
-
-  Widget _imageLoading(
-      BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-    if (loadingProgress == null) {
-      return child;
-    }
-    return Center(
-      child: CircularProgressIndicator(
-        value: loadingProgress.expectedTotalBytes != null
-            ? loadingProgress.cumulativeBytesLoaded /
-                loadingProgress.expectedTotalBytes!
-            : null,
-      ),
     );
   }
 }
